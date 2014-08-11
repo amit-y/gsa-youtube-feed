@@ -1,0 +1,21 @@
+{
+  "name": "gsa-youtube-feed",
+  "version": "0.0.1",
+  "description": "Generates feed for GSA from Youtube channel",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/amit-y/gsa-youtube-feed.git"
+  },
+  "author": "",
+  "license": "BSD",
+  "gitHead": "78978baa7b713f03731742153666c7112fe356b8",
+  "readmeFilename": "README.md",
+  "dependencies": {
+    "request": "~2.40.0",
+    "q": "~1.0.1"
+  }
+}

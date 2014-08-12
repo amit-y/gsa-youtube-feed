@@ -6,7 +6,7 @@ var Q = require('q'),
     utils = require('./utils'),
     config = require('./config.json'),
     videos = [],
-    appQ, channels, totalResults, nextPageToken,
+    appQ, channel, totalResults, nextPageToken,
     channelsListURL = utils.ytapiURL('channels', {
       part:'contentDetails', 
       forUsername:config.forUsername, 
@@ -15,48 +15,63 @@ var Q = require('q'),
 
 appQ = Q(ytapiRequest(channelsListURL))
 
-.then(function (chnl) {
-  channels = chnl;
-  return parsePlaylistItems(channels).then(function(playlistItems) {
+.then(function (channels) {
+  channel = channels.items[0].contentDetails.relatedPlaylists.uploads;
+  return parsePlaylistItems()/*.then(function(playlistItems) {
     
-    addPlaylistItemVideos(playlistItems.items);
-    totalResults = playlistItems.totalResults;
-    nextPageToken = playlistItems.nextPageToken;
-    console.log(playlistItems.nextPageToken);
-  })
-})
 
-appQ.then(function() {
-  if (videos.length < totalResults) {
-    //console.log('more videos to parse');
-    return parsePlaylistItems(channels, nextPageToken).then(function(playlistItems) {
-      console.log(playlistItems.nextPageToken);
-      addPlaylistItemVideos(playlistItems);
+  })).then(parsePlaylistItems(channels, nextPageToken)).then(function(data) { console.log(data); })*/
+    
+    /*
+    console.log(moreReqs);
+    parsePlaylistItems(channels.nextPageToken).then(function(playlistItems) {
+      console.log(playlistItems);
     });
-  }  
+
+    if (videos.length < totalResults) {
+      //console.log('more videos to parse');
+      return parsePlaylistItems(channels, nextPageToken).then(function(playlistItems) {
+        //nextPageToken = playlistItems.nextPageToken;
+        //console.log('videos got: '+playlistItems.length);
+        //addPlaylistItemVideos(playlistItems)
+      });
+    } */ 
+
 })
 
-
+.then(function() {
+    
+    //totalResults = playlistItems.totalResults;
+    //nextPageToken = playlistItems.nextPageToken;
+    //moreReqs = Math.ceil((totalResults-50)/50);
+    //return addPlaylistItemVideos(playlistItems.items);
+})
+/*
+for (var fetchloop = 0; fetchloop < 2; fetchloop++) {
 appQ.then(function() {
+  return parsePlaylistItems(channels, nextPageToken);
+})
+
+appQ.then(function(playlistItems) {
+  nextPageToken = playlistItems.nextPageToken;
+  return addPlaylistItemVideos(playlistItems.items);
+})
+}*/
+
+//appQ.delay(10000).then(function() { console.log(videos.length); });;
+
+
+appQ.done(function() {
   console.log(videos.length);
 })
 
-appQ.done(function() {});
+//appQ.done(function() {});
 
 appQ.fail(function (err) {
   console.log(err);
 });
 
-/*
-ytapiRequest(channelsListURL).then(function (channels) { 
-  
-.then(function() {
 
-  });
-}).catch(null, function (err) {
-  console.log(err);
-});
-*/
 
 function ytapiRequest(url) {
   return Q.Promise(function(resolve, reject) {
@@ -69,25 +84,36 @@ function ytapiRequest(url) {
   });
 }
 
-function parsePlaylistItems(channels, pageToken) {
+function parsePlaylistItems() {
   var deferred = Q.defer(),
   playlistItemsParams = {
     part:'snippet', 
     maxResults: 50,
-    playlistId:channels.items[0].contentDetails.relatedPlaylists.uploads, 
+    playlistId:channel, 
     key:config.key
   };
-  if (pageToken) playlistItemsParams.pageToken = pageToken;
-  var playlistItemsURL = utils.ytapiURL('playlistItems', playlistItemsParams);
+  if (nextPageToken) playlistItemsParams.pageToken = pageToken;
+  var playlistItemsURL = utils.ytapiURL('playlistItems', playlistItemsParams); //console.log(playlistItemsURL);
   ytapiRequest(playlistItemsURL).then(function (playlistItems) {
-    deferred.resolve({totalResults: playlistItems.pageInfo.totalResults, 
-      nextPageToken: playlistItems.nextPageToken, items: playlistItems.items});
+    //totalResults = playlistItems.pageInfo.totalResults;
+    nextPageToken = (playlistItems.nextPageToken) ? playlistItems.nextPageToken : '';
+    return addPlaylistItemVideos(playlistItems.items);
+  }).then(function() { 
+    deferred.resolve(); 
+    /*
+    console.log(Boolean(nextPageToken));
+    if (Boolean(nextPageToken)) {
+      return parsePlaylistItems();
+    } else {
+      
+    }*/
   });
 
   return deferred.promise;
 }
 
-function addPlaylistItemVideos(playlistItems) {
+var addPlaylistItemVideos = function (playlistItems) {
+  var deferred = Q.defer();
   for (var v = 0, maxV = playlistItems.length; v < maxV; v++) {
     videos.push({
       id: playlistItems[v].snippet.resourceId.videoId,
@@ -97,6 +123,7 @@ function addPlaylistItemVideos(playlistItems) {
         default: playlistItems[v].snippet.thumbnails.default
       }
     });
-  }
-  return;
-}
+  } //console.log('maxV: '+maxV);
+  deferred.resolve();
+  return deferred.promise;
+};

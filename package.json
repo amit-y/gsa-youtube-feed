@@ -16,6 +16,7 @@
   "readmeFilename": "README.md",
   "dependencies": {
     "request": "~2.40.0",
-    "q": "~1.0.1"
+    "q": "~1.0.1",
+    "handlebars": "^2.0.0-alpha.4"
   }
 }

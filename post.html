@@ -1,0 +1,31 @@
+<html>
+  <head>
+    <title>Simple form for pushing a feed</title>
+  </head>
+  <body>
+    <h1>Simple form for pushing a feed</h1>
+    <form enctype="multipart/form-data" method=POST
+      action="http://207.37.41.23:19900/xmlfeed">
+      <p>Name of datasource:
+        <input type="text" name="datasource">
+        <br>
+        (No spaces or non alphanumeric characters)
+      </p>
+      <p>Type of feed:
+        <input type="radio" name="feedtype" value="full" checked>
+        Full
+        <input type="radio" name="feedtype" value="incremental">
+        Incremental
+        <input type="radio" name="feedtype" value="metadata-and-url">
+        Metadata and URL
+      </p>
+      <p>
+        XML file to push:
+        <input type="file" name="data">
+      </p>
+      <p>
+        <input type="submit" value=">Submit<">
+      </p>
+    </form>
+  </body>
+</html>

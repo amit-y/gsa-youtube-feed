@@ -2,11 +2,13 @@
 
 */
 var Q = require('q'),
+    fs = require('fs'),
+    handlebars = require('handlebars'),
     request = require('request'),
     utils = require('./utils'),
     config = require('./config.json'),
     videos = [],
-    appQ, channel, totalResults, nextPageToken,
+    appQ, channel, nextPageToken, noMoreItems,
     channelsListURL = utils.ytapiURL('channels', {
       part:'contentDetails', 
       forUsername:config.forUsername, 
@@ -17,52 +19,26 @@ appQ = Q(ytapiRequest(channelsListURL))
 
 .then(function (channels) {
   channel = channels.items[0].contentDetails.relatedPlaylists.uploads;
-  return parsePlaylistItems()/*.then(function(playlistItems) {
-    
-
-  })).then(parsePlaylistItems(channels, nextPageToken)).then(function(data) { console.log(data); })*/
-    
-    /*
-    console.log(moreReqs);
-    parsePlaylistItems(channels.nextPageToken).then(function(playlistItems) {
-      console.log(playlistItems);
-    });
-
-    if (videos.length < totalResults) {
-      //console.log('more videos to parse');
-      return parsePlaylistItems(channels, nextPageToken).then(function(playlistItems) {
-        //nextPageToken = playlistItems.nextPageToken;
-        //console.log('videos got: '+playlistItems.length);
-        //addPlaylistItemVideos(playlistItems)
-      });
-    } */ 
-
+  return loopPlaylistItemsCall();
 })
 
 .then(function() {
-    
-    //totalResults = playlistItems.totalResults;
-    //nextPageToken = playlistItems.nextPageToken;
-    //moreReqs = Math.ceil((totalResults-50)/50);
-    //return addPlaylistItemVideos(playlistItems.items);
-})
-/*
-for (var fetchloop = 0; fetchloop < 2; fetchloop++) {
-appQ.then(function() {
-  return parsePlaylistItems(channels, nextPageToken);
+    //console.log(videos[0]);
+    return Q.nfcall(fs.readFile, "feed_template.xml", "utf-8");
 })
 
-appQ.then(function(playlistItems) {
-  nextPageToken = playlistItems.nextPageToken;
-  return addPlaylistItemVideos(playlistItems.items);
+.then(function(feedsrc) {
+  var feed = handlebars.compile(feedsrc);
+  var data = {videos: videos};
+  return feed(data);
 })
-}*/
 
-//appQ.delay(10000).then(function() { console.log(videos.length); });;
-
+.then(function(fd) {
+  console.log(fd);
+})
 
 appQ.done(function() {
-  console.log(videos.length);
+  console.log('done!');
 })
 
 //appQ.done(function() {});
@@ -92,21 +68,14 @@ function parsePlaylistItems() {
     playlistId:channel, 
     key:config.key
   };
-  if (nextPageToken) playlistItemsParams.pageToken = pageToken;
-  var playlistItemsURL = utils.ytapiURL('playlistItems', playlistItemsParams); //console.log(playlistItemsURL);
+  if (nextPageToken) playlistItemsParams.pageToken = nextPageToken;
+  var playlistItemsURL = utils.ytapiURL('playlistItems', playlistItemsParams);
   ytapiRequest(playlistItemsURL).then(function (playlistItems) {
-    //totalResults = playlistItems.pageInfo.totalResults;
     nextPageToken = (playlistItems.nextPageToken) ? playlistItems.nextPageToken : '';
+    if (!Boolean(nextPageToken)) noMoreItems = true;
     return addPlaylistItemVideos(playlistItems.items);
-  }).then(function() { 
+  }).then(function() {
     deferred.resolve(); 
-    /*
-    console.log(Boolean(nextPageToken));
-    if (Boolean(nextPageToken)) {
-      return parsePlaylistItems();
-    } else {
-      
-    }*/
   });
 
   return deferred.promise;
@@ -123,7 +92,20 @@ var addPlaylistItemVideos = function (playlistItems) {
         default: playlistItems[v].snippet.thumbnails.default
       }
     });
-  } //console.log('maxV: '+maxV);
+  }
   deferred.resolve();
   return deferred.promise;
 };
+
+function loopPlaylistItemsCall() {
+    var deferred = Q.defer();
+
+    function loop() {
+        if (noMoreItems) return deferred.resolve();
+        Q.when(parsePlaylistItems(), loop, deferred.reject);
+    }
+
+    Q.nextTick(loop);
+    return deferred.promise;
+}
+

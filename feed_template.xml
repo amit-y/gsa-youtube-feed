@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF8"?>
+<!DOCTYPE gsafeed PUBLIC "-//Google//DTD GSA Feeds//EN" "">
+<gsafeed>
+  <header>
+    <datasource>youtubevideos</datasource>
+    <feedtype>full</feedtype>
+  </header>
+  <group>
+    {{#videos}}
+    <record url="https://www.youtube.com/watch?v={{id}}" mimetype="text/html">
+    <content><![CDATA[
+      <html>
+        <head>
+          <title>{{title}}</title>
+          <meta name="search-title" content="{{title}}" />
+          <meta name="bite" content="{{description}}" />
+          <meta name="description" content="{{description}}" />
+          <meta name="thumbnail" content="{{thumbnails.default.url}}" />
+        </head>
+        <body>
+          <h1>{{title}}</h1>
+          {{description}}
+        </body>
+      </html>
+    ]]></content>
+    </record>
+    {{/videos}}
+  </group>
+</gsafeed>

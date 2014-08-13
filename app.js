@@ -24,7 +24,7 @@ appQ = Q(ytapiRequest(channelsListURL))
 
 .then(function() {
     //console.log(videos[0]);
-    return Q.nfcall(fs.readFile, "feed_template.xml", "utf-8");
+    return Q.nfcall(fs.readFile, 'feed_template.xml', 'utf-8');
 })
 
 .then(function(feedsrc) {
@@ -34,7 +34,12 @@ appQ = Q(ytapiRequest(channelsListURL))
 })
 
 .then(function(fd) {
-  console.log(fd);
+  //console.log(fd);
+  return postFeed('http://posttestserver.com/post.php?dir=myfeedexample','test','test',new Buffer('test','utf-8'));
+})
+
+.then(function(postresp) {
+  console.log(postresp);
 })
 
 appQ.done(function() {
@@ -47,7 +52,20 @@ appQ.fail(function (err) {
   console.log(err);
 });
 
+function postFeed(url,datasource,feedtype,data) {
+  return Q.Promise(function(resolve, reject) {
+    var post = request.post(url, function(err, response, body) {
+      if (err) reject(err);
 
+      resolve(body);
+    });
+
+    var form = post.form();
+    form.append('datasource', datasource);
+    form.append('feedtype', feedtype);
+    form.append('data', data);
+  });
+}
 
 function ytapiRequest(url) {
   return Q.Promise(function(resolve, reject) {

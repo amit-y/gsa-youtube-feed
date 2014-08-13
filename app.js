@@ -88,6 +88,7 @@ var addPlaylistItemVideos = function (playlistItems) {
       id: playlistItems[v].snippet.resourceId.videoId,
       title: playlistItems[v].snippet.title,
       description: playlistItems[v].snippet.description,
+      bite: playlistItems[v].snippet.description.replace(/\s+/g, ' '),
       thumbnails: {
         default: playlistItems[v].snippet.thumbnails.default
       }

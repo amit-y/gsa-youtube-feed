@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>{{title}}</title>
+	<meta name="description" content="">
+	<meta name="search-title" content="{{title}}" />
+    <meta name="bite" content="{{bite}}" />
+    <meta name="thumbnail" content="{{thumbnails.default.url}}" />
+    <meta name="yturl" content="https://www.youtube.com/watch?v={{id}}" />
+</head>
+<body>
+	<div>
+		<main role="main">		
+			<section>
+				<header>
+					<h2>{{title}}</h2>
+				</header>
+				<article>
+					{{description}}
+				</article>
+			</section>
+		</main>
+		<nav role="navigation">
+			<ul>
+				{{#videos}}
+				<li><a href="{{id}}.html">{{title}}</a></li>
+				{{/videos}}
+			</ul>
+		</nav>
+	</div>
+</body>
+</html>
